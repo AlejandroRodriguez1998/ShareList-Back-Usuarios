@@ -1,0 +1,38 @@
+# Archivos y carpetas de IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Configuración específica del proyecto
+.settings/
+bin/
+
+# Archivos de construcción de Maven y carpetas generadas
+target/
+mvnw
+mvnw.cmd
+!/.mvn/wrapper/maven-wrapper.jar
+*.log
+
+# Directorios de compilación y carpetas temporales de Java
+*.class
+*.war
+*.jar
+*.ear
+
+# Configuración y archivos temporales del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de configuración específicos de Eclipse/Maven
+.m2e-wtp/
+
+# Excluir archivos generados por Lombok (si se utiliza)
+generated-sources/
+
+# Directorio de recursos web
+src/main/webapp/resources/
+
+# Archivos de configuración de dependencias
+dependency-reduced-pom.xml
