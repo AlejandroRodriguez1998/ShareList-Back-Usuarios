@@ -28,13 +28,28 @@ import edu.uclm.esi.fakeaccountsbe.services.UserService;
 
 @RestController
 @RequestMapping("users") //Nombre publico de donde vamos a hacer las peticiones
-@CrossOrigin("*") //Sirve para que el servidor o controlador que permita perticiones de cualquier lado
+@CrossOrigin(origins = { "https://localhost:4200" }, allowCredentials = "true" )  //Sirve para que el servidor o controlador que permita perticiones de cualquier lado
+
 public class UserController {
 	@Autowired //instanciar este objeto sin llamar al constructor
 	private UserService userService;
 	
 	@Autowired
 	private UserDao userDao;
+	
+	@GetMapping("/checkCookie")
+	public String checkCookie(HttpServletRequest request) {
+		String fakeUserId = this.findCookie(request, "fakeUserId");
+		if (fakeUserId!=null) {
+			User user = this.userDao.findByCookie(fakeUserId);
+			if (user!=null) {
+				user.setToken(UUID.randomUUID().toString());
+				return user.getToken();
+			}
+		}
+		return null;
+	}
+
 	
 	@PostMapping("/registrar1")
 	public void registrar1(HttpServletRequest req, @RequestBody CredencialesRegistro cr) {
@@ -67,42 +82,45 @@ public class UserController {
 	}
 	
 	@PutMapping("/login1")
-	public String login1(HttpServletResponse response, HttpServletRequest request, @RequestBody User user) {
+	public String login1(HttpServletResponse response, HttpServletRequest request, @RequestBody(required = false) User user) {
+
 		String fakeUserId = this.findCookie(request, "fakeUserId");
 		
-		if (fakeUserId == null) {
+		if (fakeUserId==null) {
 			user = this.userService.find(user.getEmail(), user.getPwd());
-			
 			fakeUserId = UUID.randomUUID().toString();
-			response.addCookie(new Cookie("fakeUserId",fakeUserId));
+			Cookie cookie = new Cookie("fakeUserId", fakeUserId);
+			cookie.setMaxAge(3600*24*365);
+			cookie.setPath("/");
+			cookie.setAttribute("SameSite", "None");
+			cookie.setSecure(true);
+			response.addCookie(cookie);
 			
 			user.setCookie(fakeUserId);
 			this.userDao.save(user);
-			
-		}else {
+			user.setToken(UUID.randomUUID().toString());
+		} else {
 			user = this.userDao.findByCookie(fakeUserId);
+			if (user!=null)
+				user.setToken(UUID.randomUUID().toString());
+			else {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cookie caducada");
+			}
 		}
-		
-		user.setToken(UUID.randomUUID().toString());
 		return user.getToken();
 	}
+
 	
 	private String findCookie(HttpServletRequest request, String cookieName) {
 		Cookie[] cookies = request.getCookies();
-		
-		if (cookies == null) {
+		if (cookies==null)
 			return null;
-		}
-		
-		for (int i = 0; i < cookies.length; i++) {
-			if (cookies[i].getName().equals(cookieName)) {
+		for (int i=0; i<cookies.length; i++)
+			if (cookies[i].getName().equals(cookieName))
 				return cookies[i].getValue();
-			}
-		}
-		
 		return null;
 	}
-	
+
 	@GetMapping("/login2")
 	public User login2(HttpServletResponse response, @RequestParam String email, @RequestParam String pwd) {
 		pwd = org.apache.commons.codec.digest.DigestUtils.sha512Hex(pwd);
