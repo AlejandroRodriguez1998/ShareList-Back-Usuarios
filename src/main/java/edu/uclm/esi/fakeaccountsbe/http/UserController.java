@@ -44,12 +44,12 @@ public class UserController {
 			User user = this.userDao.findByCookie(fakeUserId);
 			if (user!=null) {
 				user.setToken(UUID.randomUUID().toString());
+				this.userDao.save(user);
 				return user.getToken();
 			}
 		}
 		return null;
 	}
-
 	
 	@PostMapping("/registrar1")
 	public void registrar1(HttpServletRequest req, @RequestBody CredencialesRegistro cr) {
@@ -59,6 +59,69 @@ public class UserController {
 		user.setPwd(cr.getPwd1());
 		
 		this.userService.registrar(req.getRemoteAddr(), user);
+	}
+	
+	@PutMapping("/login1")
+	public String login1(HttpServletResponse response, HttpServletRequest request, @RequestBody(required = false) User user) {
+
+		String fakeUserId = this.findCookie(request, "fakeUserId");
+		
+		if (fakeUserId==null) {
+			user = this.userService.find(user.getEmail(), user.getPwd());
+			fakeUserId = UUID.randomUUID().toString();
+			Cookie cookie = new Cookie("fakeUserId", fakeUserId);
+			cookie.setMaxAge(3600*24*365);
+			cookie.setPath("/");
+			cookie.setAttribute("SameSite", "None");
+			cookie.setSecure(true);
+			response.addCookie(cookie);
+			
+			user.setCookie(fakeUserId);
+			user.setToken(UUID.randomUUID().toString());
+			this.userDao.save(user);
+			
+		} else {
+			user = this.userDao.findByCookie(fakeUserId);
+			if (user!=null) {
+				user.setToken(UUID.randomUUID().toString());
+				this.userDao.save(user);
+			} else {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cookie caducada");
+			}
+		}
+		return user.getToken();
+	}
+
+	
+	private String findCookie(HttpServletRequest request, String cookieName) {
+		Cookie[] cookies = request.getCookies();
+		if (cookies==null)
+			return null;
+		for (int i=0; i<cookies.length; i++)
+			if (cookies[i].getName().equals(cookieName))
+				return cookies[i].getValue();
+		return null;
+	}
+	
+	@GetMapping("/logout")
+	public void logout(HttpServletResponse response, HttpServletRequest request) {
+	    String fakeUserId = this.findCookie(request, "fakeUserId");
+
+	    if (fakeUserId != null) {
+	        User user = this.userDao.findByCookie(fakeUserId);
+	        
+	        if (user != null) {
+	            Cookie cookie = new Cookie("fakeUserId", null);
+	            cookie.setMaxAge(0);
+	            cookie.setPath("/");
+	            cookie.setAttribute("SameSite", "None");
+	            cookie.setSecure(true);
+	            response.addCookie(cookie);
+
+	            user.setToken(null);
+	            this.userDao.save(user);
+	        }
+	    }
 	}
 	
 	@GetMapping("/registrar2")
@@ -79,46 +142,6 @@ public class UserController {
 	public void registrarMuchos(HttpServletRequest req, @RequestParam String name, @RequestParam Integer n) {
 		for (int i=0; i<n; i++)
 			this.registrar2(req, name + i + "@pepe.com", "Pepe1234", "Pepe1234");
-	}
-	
-	@PutMapping("/login1")
-	public String login1(HttpServletResponse response, HttpServletRequest request, @RequestBody(required = false) User user) {
-
-		String fakeUserId = this.findCookie(request, "fakeUserId");
-		
-		if (fakeUserId==null) {
-			user = this.userService.find(user.getEmail(), user.getPwd());
-			fakeUserId = UUID.randomUUID().toString();
-			Cookie cookie = new Cookie("fakeUserId", fakeUserId);
-			cookie.setMaxAge(3600*24*365);
-			cookie.setPath("/");
-			cookie.setAttribute("SameSite", "None");
-			cookie.setSecure(true);
-			response.addCookie(cookie);
-			
-			user.setCookie(fakeUserId);
-			this.userDao.save(user);
-			user.setToken(UUID.randomUUID().toString());
-		} else {
-			user = this.userDao.findByCookie(fakeUserId);
-			if (user!=null)
-				user.setToken(UUID.randomUUID().toString());
-			else {
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cookie caducada");
-			}
-		}
-		return user.getToken();
-	}
-
-	
-	private String findCookie(HttpServletRequest request, String cookieName) {
-		Cookie[] cookies = request.getCookies();
-		if (cookies==null)
-			return null;
-		for (int i=0; i<cookies.length; i++)
-			if (cookies[i].getName().equals(cookieName))
-				return cookies[i].getValue();
-		return null;
 	}
 
 	@GetMapping("/login2")

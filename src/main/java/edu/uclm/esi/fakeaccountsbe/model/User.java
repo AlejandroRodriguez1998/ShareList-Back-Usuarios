@@ -14,10 +14,10 @@ public class User {
 	private String email;
 	private String pwd;
 	
-	@JsonIgnore @Transient //Significa que cuando se recoge la informacion que no viaje al cliente
+	@JsonIgnore @Column(length = 36) //Significa que cuando se recoge la informacion que no viaje al cliente
 	private String token;
 	
-	@JsonIgnore @Transient
+	@JsonIgnore @Transient //para que no se guarde en la base de datos
 	private long creationTime;
 	
 	@Transient //@JsonIgnore 
