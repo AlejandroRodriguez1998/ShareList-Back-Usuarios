@@ -24,12 +24,14 @@ public class TokenController {
 	private UserDao userDao;
 	
 	@PutMapping("/validar")
-	public void validar(@RequestBody String token) {
+	public boolean validar(@RequestBody String token) {
 	    User user = this.userDao.findByToken(token);
-	       
+	    
 	    if (user == null) {
-			throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED);
+	        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido");
 	    }
+	    
+	    return user.getPremium();
 	}
 }
 

@@ -17,6 +17,9 @@ public class User {
 	@JsonIgnore @Column(length = 36) //Significa que cuando se recoge la informacion que no viaje al cliente
 	private String token;
 	
+	@JsonIgnore
+	private boolean premium;
+	
 	@JsonIgnore @Transient //para que no se guarde en la base de datos
 	private long creationTime;
 	
@@ -48,6 +51,15 @@ public class User {
 	public void setToken(String token) {
 		this.token = token;
 	}
+	
+	public boolean getPremium() {
+		return premium;
+	}
+	
+	public void setPremium(Boolean premium) {
+		this.premium = premium;
+	}
+	
 	public void setCreationTime(long creationTime) {
 		this.creationTime = creationTime;		
 	}
