@@ -14,7 +14,7 @@ public class User {
 	private String email;
 	private String pwd;
 	
-	@JsonIgnore @Transient //Significa que cuando se recoge la informacion que no viaje al cliente
+	@JsonIgnore  @Column(length = 36) //Quitamos transient para que se aparezca en la BD
 	private String token;
 	
 	@JsonIgnore @Transient

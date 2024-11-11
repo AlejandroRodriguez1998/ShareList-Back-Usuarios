@@ -83,13 +83,16 @@ public class UserController {
 			cookie.setSecure(true);
 			response.addCookie(cookie);
 
-			user.setCookie(fakeUserId);
+
 			this.userDao.save(user);
+			user.setCookie(fakeUserId);
 			user.setToken(UUID.randomUUID().toString());
 		} else {
 			user = this.userDao.findByCookie(fakeUserId);
-			if (user!=null)
+			if (user!=null) {
 				user.setToken(UUID.randomUUID().toString());
+				this.userDao.save(user);
+			}
 			else {
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cookie caducada");
 			}
@@ -165,6 +168,7 @@ public class UserController {
 			User user = this.userDao.findByCookie(fakeUserId);
 			if (user!=null) {
 				user.setToken(UUID.randomUUID().toString());
+				this.userDao.save(user);
 				return user.getToken();
 			}
 		}
