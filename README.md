@@ -17,7 +17,7 @@ Esta aplicación es responsive en todos los dispositivos, con un diseño bonito 
 ## :construction_worker: Creadores
 
 - Alejandro Paniagua Rodríguez
-- Andrés González Valera
+- Andrés González Varela
 - José Lara Navarro
 
 ## :computer: Módulos
