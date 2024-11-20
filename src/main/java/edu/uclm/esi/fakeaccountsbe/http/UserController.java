@@ -119,9 +119,20 @@ public class UserController {
 	            response.addCookie(cookie);
 
 	            user.setToken(null);
+	            user.setCookie(null);
 	            this.userDao.save(user);
 	        }
 	    }
+	}
+	
+	@GetMapping("/premium")
+	public void premium(HttpServletRequest request) {
+		String token = request.getHeader("Authorization").replace("Bearer ", "").trim();
+
+		User user = this.userDao.findByToken(token);
+		user.setPremium(true);
+	
+		this.userDao.save(user);
 	}
 	
 	@GetMapping("/registrar2")

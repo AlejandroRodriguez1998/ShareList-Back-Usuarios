@@ -14,11 +14,21 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.JavascriptExecutor;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.Point;
+
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,14 +37,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.Duration;
 
-public class BuscarRectorTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestMethodOrder(OrderAnnotation.class)
+public class ScrappingGuitarrasDeAmazon {
 	
 	private WebDriver driver;
 	private Map<String, Object> vars;
 	JavascriptExecutor jsExecutor;
 
  
-  @BeforeEach //@BeforeAll
+  @BeforeAll //@AfterAll
   public void setUp() {
 	System.setProperty("webdriver.chrome.driver", "D:\\OneDrive - Universidad de Castilla-La Mancha\\4. Cuarto Año\\4.1.1 Tecnologías y Sistemas Web\\Laboratorio\\chromedriver-win64\\chromedriver.exe");  
 	  
@@ -47,31 +59,57 @@ public class BuscarRectorTest {
 
 	jsExecutor = (JavascriptExecutor) driver;
 	vars = new HashMap<String, Object>();
-
+	
+	driver.get("https://www.amazon.es/");
+	this.pausa(1000);
+	
+	java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+	int screenWidth = (int) screenSize.getWidth();
+	int screenHeight = (int) screenSize.getHeight();
+	
+	driver.manage().window().setPosition(new Point(0,0));
+	driver.manage().window().setSize(new Dimension(screenWidth / 2, screenHeight));
+	
   }
   
-  @AfterEach
+  @AfterAll
   public void tearDown() {
     driver.quit();
   }
   
-  @Test
-  public void buscarRector() {
-    driver.get("https://directorio.uclm.es/");
+  @Test @Order(0)
+  public void testGuitarras() {
+    WebElement btnCookies = this.driver.findElement(By.id("sp-cc-accept"));
+    btnCookies.click();
+    
+    WebElement txtBuscador = this.driver.findElement(By.id("twotabsearchtextbox"));
+    txtBuscador.sendKeys("guitarra electrica");
+    txtBuscador.sendKeys(Keys.ENTER);
+    
     this.pausa(1000);
-    WebElement caja = driver.findElement(By.id("CPH_CajaCentro_tb_busqueda"));
-    driver.findElement(By.id("CPH_CajaCentro_tb_busqueda")).click();
-    driver.findElement(By.id("CPH_CajaCentro_tb_busqueda")).sendKeys("Julian garde");
-    driver.findElement(By.id("CPH_CajaCentro_lkbtn_consultar")).click();
-    driver.findElement(By.id("CPH_CajaCentro_gv_personas_lkbtn_descripcionPersona_0")).click();
-    assertEquals(driver.findElement(By.id("CPH_CajaCentro_rpt_cargos_lb_cargo_0")).getText(),"RECTOR/A");
-  }
-
-	private void pausa(int i) {
-		try {
-			Thread.sleep(i);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+    
+    List<WebElement> guitarras = this.driver.findElements(By.className("puis-padding-left-small"));
+    
+	for (WebElement guitarra : guitarras) {
+		String nombreGuitarra = guitarra.findElement(By.xpath("/div[2]/h2")).getText();
+		String pvp = guitarra.findElement(By.xpath("/div[4]/div[1]")).getText();
+		System.out.println(nombreGuitarra + " - " + pvp);
 	}
+    
+	
+	
+    
+    
+    
+  }
+  
+  private void pausa(int i) {
+	try {
+		Thread.sleep(i);
+	} catch (InterruptedException e) {
+		e.printStackTrace();
+	}
+  }
+	
+  
 }
