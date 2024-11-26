@@ -62,34 +62,22 @@ public class UserController {
 	}
 	
 	@PutMapping("/login1")
-	public String login1(HttpServletResponse response, HttpServletRequest request, @RequestBody(required = false) User user) {
+	public void login1(HttpServletResponse response, HttpServletRequest request, @RequestBody(required = false) User user) {
+	    User authenticatedUser = this.userService.find(user.getEmail(), user.getPwd());
 
-		String fakeUserId = this.findCookie(request, "fakeUserId");
-		
-		if (fakeUserId==null) {
-			user = this.userService.find(user.getEmail(), user.getPwd());
-			fakeUserId = UUID.randomUUID().toString();
-			Cookie cookie = new Cookie("fakeUserId", fakeUserId);
-			cookie.setMaxAge(3600*24*365);
-			cookie.setPath("/");
-			cookie.setAttribute("SameSite", "None");
-			cookie.setSecure(true);
-			response.addCookie(cookie);
-			
-			user.setCookie(fakeUserId);
-			user.setToken(UUID.randomUUID().toString());
-			this.userDao.save(user);
-			
-		} else {
-			user = this.userDao.findByCookie(fakeUserId);
-			if (user!=null) {
-				user.setToken(UUID.randomUUID().toString());
-				this.userDao.save(user);
-			} else {
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cookie caducada");
-			}
-		}
-		return user.getToken();
+	    // Generar nuevo token
+	    String token = UUID.randomUUID().toString();
+	    authenticatedUser.setToken(token);
+	    this.userDao.save(authenticatedUser);
+
+	    // Establecer la cookie del token
+	    Cookie cookie = new Cookie("token", token);
+	    cookie.setMaxAge(3600 * 24 * 365);
+	    cookie.setPath("/");
+	    cookie.setHttpOnly(true); // Importante para seguridad
+	    cookie.setSecure(true);
+	    cookie.setAttribute("SameSite", "None");
+	    response.addCookie(cookie);
 	}
 
 	
@@ -105,31 +93,45 @@ public class UserController {
 	
 	@GetMapping("/logout")
 	public void logout(HttpServletResponse response, HttpServletRequest request) {
-	    String fakeUserId = this.findCookie(request, "fakeUserId");
-
-	    if (fakeUserId != null) {
-	        User user = this.userDao.findByCookie(fakeUserId);
-	        
-	        if (user != null) {
-	            Cookie cookie = new Cookie("fakeUserId", null);
-	            cookie.setMaxAge(0);
-	            cookie.setPath("/");
-	            cookie.setAttribute("SameSite", "None");
-	            cookie.setSecure(true);
-	            response.addCookie(cookie);
-
-	            user.setToken(null);
-	            user.setCookie(null);
-	            this.userDao.save(user);
+	    String token = null;
+	    if (request.getCookies() != null) {
+	        for (Cookie cookie : request.getCookies()) {
+	            if ("token".equals(cookie.getName())) {
+	                token = cookie.getValue();
+	                break;
+	            }
 	        }
 	    }
+
+	    if (token != null) {
+	        User user = this.userDao.findByToken(token);
+	        if (user != null) {
+	            // Eliminar el token del usuario
+	            user.setToken(null);
+	            this.userDao.save(user);
+	        }
+
+	        // Eliminar la cookie
+	        Cookie cookie = new Cookie("token", null);
+	        cookie.setMaxAge(0);
+	        cookie.setPath("/");
+	        cookie.setHttpOnly(true);
+	        cookie.setSecure(true);
+	        cookie.setAttribute("SameSite", "None");
+	        response.addCookie(cookie);
+	    }
 	}
+
 	
 	@GetMapping("/premium")
 	public void premium(HttpServletRequest request) {
-		String token = request.getHeader("Authorization").replace("Bearer ", "").trim();
-
-		User user = this.userDao.findByToken(token);
+		//String token = request.getHeader("Authorization").replace("Bearer ", "").trim();
+		//User user = this.userDao.findByToken(token);
+		
+		User user = (User) request.getAttribute("user");
+	    if (user == null) {
+	        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No tiene permisos para esta acción.");
+	    }
 		user.setPremium(true);
 	
 		this.userDao.save(user);
