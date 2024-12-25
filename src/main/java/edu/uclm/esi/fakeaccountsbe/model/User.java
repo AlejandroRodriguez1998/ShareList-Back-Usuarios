@@ -14,7 +14,9 @@ public class User {
 	private String email;
 	private String pwd;
 	
-	@JsonIgnore @Column(length = 36) //Significa que cuando se recoge la informacion que no viaje al cliente
+	// JsonIgnore significa que cuando se recoge la informacion que no viaje al cliente
+	
+	@Column(length = 36) 
 	private String token;
 	
 	@JsonIgnore

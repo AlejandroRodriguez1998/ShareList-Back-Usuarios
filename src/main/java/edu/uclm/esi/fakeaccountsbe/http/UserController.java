@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,20 +37,21 @@ public class UserController {
 	
 	@Autowired
 	private UserDao userDao;
-	
+
 	@GetMapping("/checkCookie")
 	public String checkCookie(HttpServletRequest request) {
-		String fakeUserId = this.findCookie(request, "fakeUserId");
-		if (fakeUserId!=null) {
+		String fakeUserId = this.findCookie(request, "token");
+		if (fakeUserId != null) {
 			User user = this.userDao.findByCookie(fakeUserId);
-			if (user!=null) {
-				user.setToken(UUID.randomUUID().toString());
-				this.userDao.save(user);
+			if (user != null) {
+				//user.setToken(UUID.randomUUID().toString());
+				//this.userDao.save(user);
 				return user.getToken();
 			}
 		}
 		return null;
 	}
+
 	
 	@PostMapping("/registrar1")
 	public void registrar1(HttpServletRequest req, @RequestBody CredencialesRegistro cr) {
@@ -62,22 +64,33 @@ public class UserController {
 	}
 	
 	@PutMapping("/login1")
-	public void login1(HttpServletResponse response, HttpServletRequest request, @RequestBody(required = false) User user) {
-	    User authenticatedUser = this.userService.find(user.getEmail(), user.getPwd());
-
-	    // Generar nuevo token
-	    String token = UUID.randomUUID().toString();
-	    authenticatedUser.setToken(token);
-	    this.userDao.save(authenticatedUser);
-
-	    // Establecer la cookie del token
-	    Cookie cookie = new Cookie("token", token);
-	    cookie.setMaxAge(3600 * 24 * 365);
-	    cookie.setPath("/");
-	    cookie.setHttpOnly(true); // Importante para seguridad
-	    cookie.setSecure(true);
-	    cookie.setAttribute("SameSite", "None");
-	    response.addCookie(cookie);
+	public String login1(HttpServletResponse response, HttpServletRequest request, @RequestBody(required = false) User user) {
+		String fakeUserId = this.findCookie(request, "token");
+		
+		if (fakeUserId==null) {
+			user = this.userService.find(user.getEmail(), user.getPwd());
+			fakeUserId = UUID.randomUUID().toString();
+			Cookie cookie = new Cookie("token", fakeUserId);
+			cookie.setMaxAge(3600*24*365);
+			cookie.setPath("/");
+			cookie.setAttribute("SameSite", "None");
+			cookie.setSecure(true);
+			response.addCookie(cookie);
+			
+			user.setCookie(fakeUserId);
+			user.setToken(UUID.randomUUID().toString());
+			this.userDao.save(user);
+			
+		} else {
+			user = this.userDao.findByCookie(fakeUserId);
+			if (user!=null) {
+				user.setToken(UUID.randomUUID().toString());
+				this.userDao.save(user);
+			} else {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cookie caducada");
+			}
+		}
+		return user.getToken();
 	}
 
 	

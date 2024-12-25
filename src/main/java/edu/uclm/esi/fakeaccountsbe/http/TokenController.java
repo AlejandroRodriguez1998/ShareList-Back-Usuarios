@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("tokens") //Nombre publico de donde vamos a hacer las peticiones
-@CrossOrigin("*") //Sirve para que el servidor o controlador que permita perticiones de cualquier lado
+@CrossOrigin(origins = { "https://localhost:4200" }, allowCredentials = "true" )
 public class TokenController {
 	
 	@Autowired
@@ -51,7 +51,7 @@ public class TokenController {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token no proporcionado");
         }
         
-        User user = this.userDao.findByToken(token);
+        User user = this.userDao.findByCookie(token);
         
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido");
