@@ -135,13 +135,10 @@ public class UserController {
 	    }
 	}
 
-	
 	@GetMapping("/premium")
 	public void premium(HttpServletRequest request) {
-		//String token = request.getHeader("Authorization").replace("Bearer ", "").trim();
-		//User user = this.userDao.findByToken(token);
+		User user = this.userDao.findByCookie(this.findCookie(request, "token"));
 		
-		User user = (User) request.getAttribute("user");
 	    if (user == null) {
 	        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No tiene permisos para esta acción.");
 	    }
