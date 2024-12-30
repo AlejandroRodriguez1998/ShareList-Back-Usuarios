@@ -21,10 +21,10 @@ public class PasswordResetService {
     @Autowired
     private UserDao userDao;
 
-    // Ya no necesitamos ApiClient brevoApiClient, lo quitamos
+
 
     public void sendResetPasswordEmail(String email) {
-        // 1) Localiza el usuario y guarda el token
+        // Localiza el usuario y guarda el token
         User usuario = userDao.findById(email)
             .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
@@ -33,12 +33,12 @@ public class PasswordResetService {
         usuario.setTokenResetExpiracion(Instant.now().plusSeconds(3600).toEpochMilli()); // Expira en 1 hora
         userDao.save(usuario);
 
-        // 2) Construimos la URL y el contenido HTML a enviar
+        // Construimos la URL y el contenido HTML a enviar
         String urlReset = "https://localhost:4200/reset-password?token=" + token;
         String cuerpoHtml = "<p>Haz clic en el siguiente enlace para restablecer tu contraseña:</p>"
                 + "<a href='" + urlReset + "'>Restablecer Contraseña</a>";
 
-        // 3) Construimos el JSON con org.json
+        // Construimos el JSON con org.json
         // Estructura mínima: sender, to, subject, htmlContent
         JSONObject sender = new JSONObject()
                 .put("email", "joselaranavarro10@gmail.com")  // Remitente
@@ -57,8 +57,7 @@ public class PasswordResetService {
                 .put("subject", "Restablece tu contraseña")
                 .put("htmlContent", cuerpoHtml);
 
-        // 4) Construir la petición HTTP con la api-key en el header
-        // Sustituye TU_API_KEY por la que uses
+        // Construir la petición HTTP con la api-key en el header
         String apiKey = "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";
         
         HttpRequest request = HttpRequest.newBuilder()
@@ -70,7 +69,7 @@ public class PasswordResetService {
             .POST(HttpRequest.BodyPublishers.ofString(root.toString()))
             .build();
 
-        // 5) Mandamos la request y gestionamos la respuesta
+        // Mandamos la request y gestionamos la respuesta
         try {
             HttpClient client = HttpClient.newHttpClient();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -90,9 +89,10 @@ public class PasswordResetService {
         }
     }
 
-    public void resetPassword(String token, String nuevaPassword) {
-        User usuario = userDao.findByTokenReset(token);
-        if (usuario == null || usuario.getTokenResetExpiracion() < System.currentTimeMillis()) {
+    // Método que resetea la contraseña de un usuario
+    public void resetPassword(String tokenReset, String nuevaPassword) {
+        User usuario = userDao.findByTokenReset(tokenReset);
+        if (!isResetTokenValid(tokenReset)) {
             throw new RuntimeException("Token inválido o expirado");
         }
 
@@ -100,5 +100,18 @@ public class PasswordResetService {
         usuario.setTokenReset(null);
         usuario.setTokenResetExpiracion(0);
         userDao.save(usuario);
+    }
+    
+    // Método que comprueba si un token de reset es válido
+    public boolean isResetTokenValid(String token) {
+        User usuario = userDao.findByTokenReset(token);
+        if (usuario == null) {
+            return false;
+        }
+        // Comprobar fecha de expiración
+        if (usuario.getTokenResetExpiracion() < System.currentTimeMillis()) {
+            return false;
+        }
+        return true;
     }
 }

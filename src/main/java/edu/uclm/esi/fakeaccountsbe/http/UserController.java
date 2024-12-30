@@ -220,18 +220,38 @@ public class UserController {
 	    return true;
 	}
 	
+	// Endpoint para solicitar restablecimiento de contraseña
 	@PostMapping("/forgot-password")
 	public ResponseEntity<String> forgotPassword(@RequestParam String email) {
 	    passwordResetService.sendResetPasswordEmail(email);
 	    return ResponseEntity.ok("Correo de restablecimiento enviado");
 	}
 
-	@PostMapping("/reset-password")
-	public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
-	    passwordResetService.resetPassword(token, newPassword);
-	    return ResponseEntity.ok("Contraseña actualizada");
-	}
-
+	// Endpoint para resetear la contraseña
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+        try {
+            // Llamamos al servicio
+            passwordResetService.resetPassword(token, newPassword);
+            return ResponseEntity.ok("Contraseña actualizada");
+        } catch (RuntimeException e) {
+            // Capturamos la excepción y devolvemos una respuesta con código 400.
+            return ResponseEntity
+                .badRequest()
+                .body(e.getMessage()); 
+        }
+    }
+    
+    // Endpoint para comprobar si un token de reset es válido
+    @GetMapping("/check-reset-token")
+    public ResponseEntity<String> checkResetToken(@RequestParam String token) {
+        boolean valido = passwordResetService.isResetTokenValid(token);
+        if (valido) {
+            return ResponseEntity.ok("Token válido");
+        } else {
+            return ResponseEntity.badRequest().body("Token inválido o expirado");
+        }
+    }
 }
 
 
