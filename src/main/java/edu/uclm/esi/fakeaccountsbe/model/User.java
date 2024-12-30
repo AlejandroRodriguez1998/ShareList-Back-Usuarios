@@ -19,6 +19,11 @@ public class User {
 	@Column(length = 36) 
 	private String token;
 	
+	@Column(length = 36)
+	private String tokenReset; //token para resetear la contraseña
+
+	private long tokenResetExpiracion; //fecha de expiracion del token para resetear la contraseña
+	
 	@JsonIgnore
 	private boolean premium;
 	
@@ -85,4 +90,22 @@ public class User {
 	public String getCookie() {
 		return this.cookie;
 	}
+	
+	public String getTokenReset() {
+	    return tokenReset;
+	}
+
+	public void setTokenReset(String tokenReset) {
+	    this.tokenReset = tokenReset;
+	}
+
+	public long getTokenResetExpiracion() {
+	    return tokenResetExpiracion;
+	}
+
+	public void setTokenResetExpiracion(long tokenResetExpiracion) {
+	    this.tokenResetExpiracion = tokenResetExpiracion;
+	}
+	
+
 }

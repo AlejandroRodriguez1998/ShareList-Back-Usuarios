@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import edu.uclm.esi.fakeaccountsbe.dao.UserDao;
 import edu.uclm.esi.fakeaccountsbe.model.CredencialesRegistro;
 import edu.uclm.esi.fakeaccountsbe.model.User;
+import edu.uclm.esi.fakeaccountsbe.services.PasswordResetService;
 import edu.uclm.esi.fakeaccountsbe.services.UserService;
 
 @RestController
@@ -34,6 +35,9 @@ import edu.uclm.esi.fakeaccountsbe.services.UserService;
 public class UserController {
 	@Autowired //instanciar este objeto sin llamar al constructor
 	private UserService userService;
+	
+	@Autowired
+	private PasswordResetService passwordResetService;	
 	
 	@Autowired
 	private UserDao userDao;
@@ -215,6 +219,19 @@ public class UserController {
 	    }
 	    return true;
 	}
+	
+	@PostMapping("/forgot-password")
+	public ResponseEntity<String> forgotPassword(@RequestParam String email) {
+	    passwordResetService.sendResetPasswordEmail(email);
+	    return ResponseEntity.ok("Correo de restablecimiento enviado");
+	}
+
+	@PostMapping("/reset-password")
+	public ResponseEntity<String> resetPassword(@RequestParam String token, @RequestParam String newPassword) {
+	    passwordResetService.resetPassword(token, newPassword);
+	    return ResponseEntity.ok("Contraseña actualizada");
+	}
+
 }
 
 

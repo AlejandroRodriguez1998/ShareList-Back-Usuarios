@@ -9,5 +9,8 @@ public interface UserDao extends CrudRepository<User, String> {
 	User findByCookie(String fakeUserId);
 
 	User findByToken(String token);
+	
+	User findByTokenReset(String tokenReset);
+	
 
 }
