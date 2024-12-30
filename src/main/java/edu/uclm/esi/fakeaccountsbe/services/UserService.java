@@ -14,6 +14,9 @@ public class UserService {
 	
 	@Autowired
 	private UserDao userDao;
+	
+	@Autowired
+	private ActivationService activationService;
 		
 	public void registrar(String ip, User user) {
 		if (this.userDao.findById(user.getEmail()).isPresent())
@@ -21,7 +24,12 @@ public class UserService {
 		
 		user.setIp(ip);
 		user.setCreationTime(System.currentTimeMillis());
+		user.setActivated(false); // Marca la cuenta como no activada
+		
 		this.userDao.save(user);
+		
+		// Enviamos el correo de activación
+		activationService.sendActivationEmail(user);
 	}
 
 	public void login(User tryingUser) {

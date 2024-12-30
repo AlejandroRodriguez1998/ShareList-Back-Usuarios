@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import edu.uclm.esi.fakeaccountsbe.dao.UserDao;
 import edu.uclm.esi.fakeaccountsbe.model.CredencialesRegistro;
 import edu.uclm.esi.fakeaccountsbe.model.User;
+import edu.uclm.esi.fakeaccountsbe.services.ActivationService;
 import edu.uclm.esi.fakeaccountsbe.services.PasswordResetService;
 import edu.uclm.esi.fakeaccountsbe.services.UserService;
 
@@ -38,6 +39,9 @@ public class UserController {
 	
 	@Autowired
 	private PasswordResetService passwordResetService;	
+	
+	@Autowired
+	private ActivationService activationService;
 	
 	@Autowired
 	private UserDao userDao;
@@ -252,6 +256,24 @@ public class UserController {
             return ResponseEntity.badRequest().body("Token inválido o expirado");
         }
     }
+    
+    // Endpoint para activar la cuenta de un usuario´
+    @GetMapping("/activate")
+    public ResponseEntity<String> activate(@RequestParam String token) {
+        try {
+            String resultado = activationService.activateUser(token);
+            if (resultado.equals("activated")) {
+                return ResponseEntity.ok("Cuenta activada correctamente");
+            } else {
+                // "alreadyActivated"
+                return ResponseEntity.ok("Esta cuenta ya se encontraba activada");
+            }
+        } catch (RuntimeException e) {
+            // p. ej. token nulo, no existe, etc.
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    
 }
 
 

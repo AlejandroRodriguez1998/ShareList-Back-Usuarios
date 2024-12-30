@@ -11,6 +11,8 @@ public interface UserDao extends CrudRepository<User, String> {
 	User findByToken(String token);
 	
 	User findByTokenReset(String tokenReset);
+
+	User findByTokenActivacion(String tokenActivacion);
 	
 
 }

@@ -24,6 +24,11 @@ public class User {
 
 	private long tokenResetExpiracion; //fecha de expiracion del token para resetear la contraseña
 	
+    @Column(length = 36)
+    private String tokenActivacion; // token para activar la cuenta
+    
+    private boolean activated; // si la cuenta esta activada o no
+	
 	@JsonIgnore
 	private boolean premium;
 	
@@ -105,6 +110,22 @@ public class User {
 
 	public void setTokenResetExpiracion(long tokenResetExpiracion) {
 	    this.tokenResetExpiracion = tokenResetExpiracion;
+	}
+	
+	public String getTokenActivacion() {
+		return tokenActivacion;
+	}
+	
+	public void setTokenActivacion(String tokenActivacion) {
+		this.tokenActivacion = tokenActivacion;
+	}
+	
+	public boolean isActivated() {
+		return activated;
+	}
+	
+	public void setActivated(boolean activated) {
+		this.activated = activated;
 	}
 	
 
