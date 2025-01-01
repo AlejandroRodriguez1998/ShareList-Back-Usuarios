@@ -14,10 +14,25 @@ public class User {
 	private String email;
 	private String pwd;
 	
-	@JsonIgnore @Transient //Significa que cuando se recoge la informacion que no viaje al cliente
+	// JsonIgnore significa que cuando se recoge la informacion que no viaje al cliente
+	
+	@Column(length = 36) 
 	private String token;
 	
-	@JsonIgnore @Transient
+	@Column(length = 36)
+	private String tokenReset; //token para resetear la contraseña
+
+	private long tokenResetExpiracion; //fecha de expiracion del token para resetear la contraseña
+	
+    @Column(length = 36)
+    private String tokenActivacion; // token para activar la cuenta
+    
+    private boolean activated; // si la cuenta esta activada o no
+	
+	@JsonIgnore
+	private boolean premium;
+	
+	@JsonIgnore @Transient //para que no se guarde en la base de datos
 	private long creationTime;
 	
 	@Transient //@JsonIgnore 
@@ -48,6 +63,15 @@ public class User {
 	public void setToken(String token) {
 		this.token = token;
 	}
+	
+	public boolean getPremium() {
+		return premium;
+	}
+	
+	public void setPremium(Boolean premium) {
+		this.premium = premium;
+	}
+	
 	public void setCreationTime(long creationTime) {
 		this.creationTime = creationTime;		
 	}
@@ -71,4 +95,38 @@ public class User {
 	public String getCookie() {
 		return this.cookie;
 	}
+	
+	public String getTokenReset() {
+	    return tokenReset;
+	}
+
+	public void setTokenReset(String tokenReset) {
+	    this.tokenReset = tokenReset;
+	}
+
+	public long getTokenResetExpiracion() {
+	    return tokenResetExpiracion;
+	}
+
+	public void setTokenResetExpiracion(long tokenResetExpiracion) {
+	    this.tokenResetExpiracion = tokenResetExpiracion;
+	}
+	
+	public String getTokenActivacion() {
+		return tokenActivacion;
+	}
+	
+	public void setTokenActivacion(String tokenActivacion) {
+		this.tokenActivacion = tokenActivacion;
+	}
+	
+	public boolean isActivated() {
+		return activated;
+	}
+	
+	public void setActivated(boolean activated) {
+		this.activated = activated;
+	}
+	
+
 }
