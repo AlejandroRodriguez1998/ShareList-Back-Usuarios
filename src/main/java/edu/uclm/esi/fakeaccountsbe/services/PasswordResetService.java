@@ -58,7 +58,7 @@ public class PasswordResetService {
                 .put("htmlContent", cuerpoHtml);
 
         // Construir la petición HTTP con la api-key en el header
-        String apiKey = "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";
+        String apiKey = "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";
         
         HttpRequest request = HttpRequest.newBuilder()
             .uri(URI.create("https://api.brevo.com/v3/smtp/email"))
